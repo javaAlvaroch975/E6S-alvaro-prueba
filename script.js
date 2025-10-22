@@ -312,6 +312,7 @@ var mostrarPantallaFinal = function() {
     htmlFinal += '<div class="stat-item">Tiempo total: ' + tiempo_Total.toFixed(2) + 's</div>';
     htmlFinal += '<div class="stat-item">tiempo medio: ' + tiempo_Medio.toFixed(2) + 's</div>';
     htmlFinal += '</div>';
+    htmlFinal += '<br><br>';
     
     htmlFinal += '<div class="time-details">';
     htmlFinal += '<h3>Tiempos por pregunta:</h3>';
