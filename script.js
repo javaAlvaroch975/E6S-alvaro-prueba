@@ -260,98 +260,10 @@ var mostrarPantallaFinal = function() {
     htmlFinal += '<div class="stat-item">✅ Aciertos: ' + puntuacion + '</div>';
     htmlFinal += '<div class="stat-item">❌ Errores: ' + rep_Inc + '</div>';
     htmlFinal += '</div>';
-    
-    htmlFinal += '<div class="result-form">';
-    htmlFinal += '<h3>Guarda tu resultado</h3>';
-    htmlFinal += '<div class="form-group">';
-    htmlFinal += '<label>Nombre:</label>';
-    htmlFinal += '<input type="text" id="player-name" placeholder="Tu nombre" />';
-    htmlFinal += '</div>';
-    htmlFinal += '<button class="btn" id="save-btn">Guardar</button>';
-    htmlFinal += '<div id="save-message"></div>';
-    htmlFinal += '</div>';
-    
-    htmlFinal += '<button class="btn btn-secondary" onclick="location.reload()">Jugar de nuevo</button>';
+    htmlFinal += '<button class="btn" onclick="location.reload()">Jugar de nuevo</button>';
     htmlFinal += '</div>';
     
     contenedor_Juego.innerHTML = htmlFinal;
-    
-    configurarListenerFormulario();
-};
-
-// Función para el formulario
-var configurarListenerFormulario = function() {
-    var boton_Guardar = document.getElementById('save-btn');
-    var Nombre_Jugador = document.getElementById('player-name');
-    var guardar_Nombre = document.getElementById('save-message');
-    
-    boton_Guardar.addEventListener('click', function() {
-        var nombreJugador = Nombre_Jugador.value;
-        
-        if (nombreJugador.trim() === '') {
-            guardar_Nombre.innerHTML = '<div class="error-message">Por favor ingresa tu nombre</div>';
-            return;
-        }
-        
-        var resultado = {
-            name: nombreJugador,
-            score: puntuacion,
-            wrongAnswers: rep_Inc,
-            total: NUM_PREGUNTAS,
-            date: new Date().toLocaleDateString()
-        };
-        
-        var resultadosGuardados = [];
-        var datosAlmacenados = localStorage.getItem('movieTriviaResults');
-        
-        if (datosAlmacenados !== null) {
-            resultadosGuardados = JSON.parse(datosAlmacenados);
-        }
-        
-        resultadosGuardados.push(resultado);
-        
-        localStorage.setItem('movieTriviaResults', JSON.stringify(resultadosGuardados));
-        
-        guardar_Nombre.innerHTML = '<div class="success-message">¡Guardado! ✅</div>';
-        
-        boton_Guardar.disabled = true;
-        Nombre_Jugador.disabled = true;
-        
-        mostrarResultadosGuardados(resultadosGuardados);
-    });
-};
-
-// Función para mostrar resultados guardados
-var mostrarResultadosGuardados = function(resultados) {
-    var htmlResultados = '<div class="saved-results">';
-    htmlResultados += '<h3>Resultados guardados</h3>';
-    htmlResultados += '<div class="results-list">';
-    
-    var indice = resultados.length - 5;
-    if (indice < 0) {
-        indice = 0;
-    }
-    
-    for (var i = resultados.length - 1; i >= indice; i--) {
-        var resultado = resultados[i];
-        var porcentaje = Math.round((resultado.score / resultado.total) * 100);
-        
-        htmlResultados += '<div class="result-item">';
-        htmlResultados += '<div class="result-name">' + resultado.name + '</div>';
-        htmlResultados += '<div class="result-stats">';
-        htmlResultados += '✅ ' + resultado.score + ' | ';
-        htmlResultados += '❌ ' + resultado.wrongAnswers + ' | ';
-        htmlResultados += porcentaje + '%';
-        htmlResultados += '</div>';
-        htmlResultados += '<div class="result-date">' + resultado.date + '</div>';
-        htmlResultados += '</div>';
-    }
-    
-    htmlResultados += '</div>';
-    htmlResultados += '</div>';
-    
-    var guardar_Nombre = document.getElementById('save-message');
-    guardar_Nombre.insertAdjacentHTML('afterend', htmlResultados);
 };
 
 // Iniciar el juego
