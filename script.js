@@ -1,4 +1,4 @@
-// Mi clave de la API de OMDB
+// CONSTANTES API + NÂº PREGUNTAS
 var CLAVE_API = 'b68cb153';
 var NUM_PREGUNTAS = 5;
 
@@ -7,24 +7,28 @@ var puntuacion = 0;
 var rep_Inc = 0; 
 var pregunta_Actual = 0; 
 var peliculas = [];
-var contenedor_Juego;
+var main_juego;
 var marcador_Puntuacion; 
+var tiempo_Inicio_Pregunta = 0;
+var tiempos_Pregunta = [];
+var tiempo_Total = 0;
+var tiempo_Parar = null;
 
-// Función para iniciar el juego
+// FUNCION PARA INICIAR EL JUEGO
 var iniciarJuego = function() { 
-    contenedor_Juego = document.getElementById('game-container');
+    main_juego = document.getElementById('game-container');
     marcador_Puntuacion = document.getElementById('score');
     
     // Mostrar mensaje de carga
-    contenedor_Juego.innerHTML = '<div class="loading">Cargando preguntas...</div>';
-    
-    // Cargar las películas
+    main_juego.innerHTML = '<div class="loading">Cargando preguntas...</div>';
+
+    // Cargar las peliculas
     cargarPeliculas();
 };
 
-// Función para cargar películas
+// FUNCION PARA CARGAR PELICULAS
 var cargarPeliculas = function() {
-    // Lista de IDs de películas famosas
+    // Lista de IDs de peli­culas famosas
     var id_Peliculas = ['tt0111161', 'tt0068646', 'tt0468569', 'tt0137523', 'tt0816692'];
     
     // Mezclar los IDs
@@ -41,7 +45,7 @@ var cargarPeliculas = function() {
         id_Mezclados[j] = temporal;
     }
     
-    // Cargar cada película
+    // CARGAR LAS PELICULAS
     var pelis_Cargadas = 0;
     for (var i = 0; i < NUM_PREGUNTAS; i++) {
         var id = id_Mezclados[i];
@@ -66,8 +70,8 @@ var cargarPeliculas = function() {
     }
 };
 
-// Función para mezclar un array
-var Mezclar_Pel_Resp = function(array) {
+// MEZCLAR LOS ARRAYS
+var Mezclar_Pel_Resp = function(array) { 
     var copia_Original = [];
     
     for (var i = 0; i < array.length; i++) {
@@ -76,15 +80,15 @@ var Mezclar_Pel_Resp = function(array) {
     
     for (var i = copia_Original.length - 1; i > 0; i--) {
         var j = Math.floor(Math.random() * (i + 1));
-        var temporal = copia_Original[i];
+        var elementoActual = copia_Original[i];
         copia_Original[i] = copia_Original[j];
-        copia_Original[j] = temporal;
+        copia_Original[j] = elementoActual;
     }
     
-    return copia_Original;
+    return copia_Original; 
 };
 
-// Función para generar respuestas incorrectas
+// GENERAR RESPUESTAS INCORRECTAS
 var obtener_resp_inc = function(tipo, callback) {
     var id_Peliculas_Incorrectas = ['tt0114369', 'tt0120737', 'tt0110357'];
     
@@ -118,12 +122,14 @@ var obtener_resp_inc = function(tipo, callback) {
     }
 };
 
-// Función para mostrar una pregunta
+// MOSTRAR PREGUNTA
 var mostrarPregunta = function() {
     if (pregunta_Actual >= NUM_PREGUNTAS) {
         mostrarPantallaFinal();
         return;
     }
+    
+    tiempo_Inicio_Pregunta = Date.now();
     
     var pelicula = peliculas[pregunta_Actual];
     
@@ -137,39 +143,41 @@ var mostrarPregunta = function() {
     var pregunta = '';
     var resp_Correcta = '';
     
+    // Decidir tipo de pregunta
     if (tipo_Pregunta === 'year') {
-        pregunta = '¿En qué año se estrenó "' + pelicula.Title + '"?';
+        pregunta = '¿En que año se ha estrenado: "' + pelicula.Title + '"?';
         resp_Correcta = pelicula.Year;
         
         obtener_resp_inc('year', function(resp_Incorrectas) {
-            renderizar_Pregunta(pelicula, pregunta, resp_Correcta, resp_Incorrectas);
+            mostrar_Pregunta(pelicula, pregunta, resp_Correcta, resp_Incorrectas);
         });
     } else {
-        pregunta = '¿Cómo se llama esta película?';
+        pregunta = '¿Como se llama la pelicula?';
         resp_Correcta = pelicula.Title;
         
         obtener_resp_inc('title', function(resp_Incorrectas) {
-            renderizar_Pregunta(pelicula, pregunta, resp_Correcta, resp_Incorrectas);
+            mostrar_Pregunta(pelicula, pregunta, resp_Correcta, resp_Incorrectas);
         });
     }
 };
 
-// Función para renderizar la pregunta en pantalla
-var renderizar_Pregunta = function(pelicula, pregunta, resp_Correcta, resp_Incorrectas) {
+// MOSTRAR LA PREGUNTA EN PANTALLA
+var mostrar_Pregunta = function(pelicula, pregunta, resp_Correcta, resp_Incorrectas) {
     var opciones_Pregunta = [resp_Correcta];
     
     for (var i = 0; i < resp_Incorrectas.length; i++) {
         opciones_Pregunta.push(resp_Incorrectas[i]);
     }
-    
+
+    // Mezclar opciones
     var opciones_Mix = Mezclar_Pel_Resp(opciones_Pregunta);
-    
     var contenidoHTML = '<div class="question-container">';
+    contenidoHTML += '<div class="timer">Tiempo: <span id="tiempo-display">0.0s</span></div>';
     
     if (pelicula.Poster !== 'N/A') {
         contenidoHTML += '<img src="' + pelicula.Poster + '" alt="' + pelicula.Title + '" class="movie-poster">';
     }
-    
+
     contenidoHTML += '<div class="question">' + pregunta + '</div>';
     contenidoHTML += '<div class="options">';
     
@@ -177,23 +185,58 @@ var renderizar_Pregunta = function(pelicula, pregunta, resp_Correcta, resp_Incor
         var opcion = opciones_Mix[i];
         contenidoHTML += '<div class="option" data-answer="' + opcion + '">' + opcion + '</div>';
     }
-    
+
     contenidoHTML += '</div>';
     contenidoHTML += '<div id="result-message"></div>';
     contenidoHTML += '<button class="btn" id="next-btn" style="display: none;">Siguiente pregunta</button>';
     contenidoHTML += '</div>';
-    
-    contenedor_Juego.innerHTML = contenidoHTML;
-    
-    configurarListenersOpciones(resp_Correcta);
+
+    // Mostrar en el main
+    main_juego.innerHTML = contenidoHTML;
+    actualizarTemporizador();
+    opciones(resp_Correcta);
 };
 
-// Función para configurar los listeners
-var configurarListenersOpciones = function(resp_Correcta) {
+// ACTUALIZAR TEMPORIZADOR
+var actualizarTemporizador = function() {
+    tiempo_Parar = setInterval(function() {
+        var tiempo_Actual = Date.now();
+        var tiempo = tiempo_Actual - tiempo_Inicio_Pregunta;
+        var segundos = tiempo / 1000;
+        
+        var timer = document.getElementById('tiempo-display');
+        if (timer) {
+            timer.textContent = segundos.toFixed(1) + 's';
+        }
+    }, 100);
+};
+
+// DETENER TEMPORIZADOR
+var detenerTemporizador = function() {
+    if (tiempo_Parar) {
+        clearInterval(tiempo_Parar);
+        tiempo_Parar = null;
+    }
+};
+
+// GUARDAR TIEMPO PREGUNTA
+var guardarTiempoPregunta = function() {
+    var tiempo_Final = Date.now();
+    var tiempo_Pregunta = (tiempo_Final - tiempo_Inicio_Pregunta) / 1000;
+    
+    tiempos_Pregunta.push(tiempo_Pregunta);
+    tiempo_Total = tiempo_Total + tiempo_Pregunta;
+    
+    detenerTemporizador();
+};
+
+// FUNCION PARA CONFIGURAR LAS OPCIONES
+var opciones = function(resp_Correcta) {
     var opciones = document.querySelectorAll('.option');
     var mensaje_Resultado = document.getElementById('result-message');
     var boton_Siguiente = document.getElementById('next-btn');
     
+    // Escuchar y guardar la pregunta
     for (var i = 0; i < opciones.length; i++) {
         var opcion = opciones[i];
         
@@ -202,6 +245,8 @@ var configurarListenersOpciones = function(resp_Correcta) {
                 return;
             }
             
+            guardarTiempoPregunta();
+            
             var resp_Seleccionada = this.dataset.answer;
             var correcto = false;
             
@@ -209,25 +254,26 @@ var configurarListenersOpciones = function(resp_Correcta) {
                 correcto = true;
             }
             
+            // Quitar seleccion y poner seleccion usuario + respuestas
             var opciones_Pregunta = document.querySelectorAll('.option');
             for (var j = 0; j < opciones_Pregunta.length; j++) {
-                var opcionActual = opciones_Pregunta[j];
-                opcionActual.classList.add('disabled');
+                var opcion_Actual = opciones_Pregunta[j];
+                opcion_Actual.classList.add('disabled');
                 
-                if (opcionActual.dataset.answer === resp_Correcta) {
-                    opcionActual.classList.add('correct');
-                } else if (opcionActual === this && !correcto) {
-                    opcionActual.classList.add('incorrect');
+                if (opcion_Actual.dataset.answer === resp_Correcta) {
+                    opcion_Actual.classList.add('correct');
+                } else if (opcion_Actual === this && !correcto) {
+                    opcion_Actual.classList.add('incorrect');
                 }
             }
             
             if (correcto) {
                 puntuacion = puntuacion + 1;
                 marcador_Puntuacion.textContent = puntuacion;
-                mensaje_Resultado.innerHTML = '<div class="result-message correct">¡Correcto! 🎉</div>';
+                mensaje_Resultado.innerHTML = '<div class="result-message correct"> Muy bien, correcto </div>';
             } else {
                 rep_Inc = rep_Inc + 1;
-                mensaje_Resultado.innerHTML = '<div class="result-message incorrect">Incorrecto 😢</div>';
+                mensaje_Resultado.innerHTML = '<div class="result-message incorrect"> Nuh uh, incorrecto </div>';
             }
             
             boton_Siguiente.style.display = 'block';
@@ -240,30 +286,45 @@ var configurarListenersOpciones = function(resp_Correcta) {
     });
 };
 
-// Función para mostrar pantalla final
+// MOSTRAR PANTALLA PUNTUACION FINAL
 var mostrarPantallaFinal = function() {
     var porcentaje = (puntuacion / NUM_PREGUNTAS) * 100;
     var mensaje = '';
     
+    // Puntuaciones
     if (porcentaje === 100) {
-        mensaje = '¡Perfecto! Eres un experto en cine 🏆';
+        mensaje = 'Perfecto jefe, eres un sigma';
     } else if (porcentaje >= 60) {
-        mensaje = '¡Muy bien! Conoces bastante de películas 🎬';
+        mensaje = 'K crack, sigue intentando';
     } else {
-        mensaje = 'Sigue intentando, puedes mejorar 💪';
+        mensaje = 'Y tu estas seguro que sabias de peliculas?';
     }
     
+    var tiempo_Medio = tiempo_Total / NUM_PREGUNTAS;
+    
+    // Tarjetita final
     var htmlFinal = '<div class="final-screen">';
     htmlFinal += '<div class="final-score">' + puntuacion + '/' + NUM_PREGUNTAS + '</div>';
     htmlFinal += '<div class="final-message">' + mensaje + '</div>';
     htmlFinal += '<div class="stats-summary">';
-    htmlFinal += '<div class="stat-item">✅ Aciertos: ' + puntuacion + '</div>';
-    htmlFinal += '<div class="stat-item">❌ Errores: ' + rep_Inc + '</div>';
+    htmlFinal += '<div class="stat-item">Aciertos: ' + puntuacion + '</div>';
+    htmlFinal += '<div class="stat-item">Errores: ' + rep_Inc + '</div>';
+    htmlFinal += '<div class="stat-item">Tiempo total: ' + tiempo_Total.toFixed(2) + 's</div>';
+    htmlFinal += '<div class="stat-item">tiempo medio: ' + tiempo_Medio.toFixed(2) + 's</div>';
     htmlFinal += '</div>';
+    
+    htmlFinal += '<div class="time-details">';
+    htmlFinal += '<h3>Tiempos por pregunta:</h3>';
+    for (var i = 0; i < tiempos_Pregunta.length; i++) {
+        htmlFinal += '<div class="time-item">Pregunta ' + (i + 1) + ': ' + tiempos_Pregunta[i].toFixed(2) + 's</div>';
+    }
+    htmlFinal += '</div>';
+    
     htmlFinal += '<button class="btn" onclick="location.reload()">Jugar de nuevo</button>';
     htmlFinal += '</div>';
     
-    contenedor_Juego.innerHTML = htmlFinal;
+    // Meterlo al main
+    main_juego.innerHTML = htmlFinal;
 };
 
 // Iniciar el juego
